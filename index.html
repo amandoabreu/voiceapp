@@ -1,85 +1,136 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=375, initial-scale=1.0, user-scalable=no">
-    <title>Fixed Width App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <title>Todo List App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
             margin: 0;
             padding: 0;
-            overflow-x: hidden; /* Prevent horizontal scroll */
-            background-color: #f4f4f4;
-        }
-        .container {
-            max-width: 375px; /* Fixed width for mobile */
-            margin: 0 auto;
-            padding: 20px;
-            background: white;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
         }
         h1 {
-            text-align: center;
             color: #333;
+            margin-bottom: 20px;
         }
-        input[type="text"] {
-            width: 100%;
+        #todo-form {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        #todo-input {
             padding: 10px;
-            margin: 10px 0;
             border: 1px solid #ccc;
-            border-radius: 5px;
+            border-radius: 4px;
+            width: 200px;
         }
-        button {
-            width: 100%;
-            padding: 10px;
-            background: #28a745;
-            color: white;
+        #add-btn {
+            padding: 10px 15px;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
+            background-color: #5cb85c;
+            color: white;
             cursor: pointer;
+            margin-left: 10px;
         }
-        button:hover {
-            background: #218838;
+        #todo-list {
+            list-style: none;
+            padding: 0;
+            width: 100%;
+            max-width: 300px;
         }
-        #output {
-            margin-top: 20px;
-            text-align: center;
-            color: #555;
+        .todo-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .remove-btn {
+            background: red;
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Fixed Width App</h1>
-        <input type="text" id="inputField" placeholder="Type something...">
-        <button id="saveButton">Save</button>
-        <div id="output"></div>
+    <h1>Todo List</h1>
+    <div id="todo-form">
+        <input type="text" id="todo-input" placeholder="Add a new task...">
+        <button id="add-btn">Add</button>
     </div>
+    <ul id="todo-list"></ul>
 
     <script>
-        // Function to save data to localStorage
-        function saveData() {
-            const inputField = document.getElementById('inputField');
-            const output = document.getElementById('output');
-            const userInput = inputField.value;
-            localStorage.setItem('savedData', userInput); // Save user input to localStorage
-            output.textContent = `Saved: ${userInput}`; // Display saved message
-            inputField.value = ''; // Clear the input field after saving
+        // Check if there are todos in localStorage and load them
+        document.addEventListener('DOMContentLoaded', loadTodos);
+
+        // Add event listener to the 'Add' button
+        document.getElementById('add-btn').addEventListener('click', addTodo);
+
+        function addTodo() {
+            const input = document.getElementById('todo-input');
+            const todoText = input.value.trim();
+
+            if (todoText === '') return; // Do nothing if input is empty
+
+            // Create a new todo object
+            const todo = {
+                id: Date.now(),
+                text: todoText
+            };
+
+            // Get existing todos from localStorage
+            const todos = JSON.parse(localStorage.getItem('todos')) || [];
+            todos.push(todo);
+            localStorage.setItem('todos', JSON.stringify(todos));
+
+            // Add todo to the list and clear input
+            input.value = '';
+            renderTodos();
         }
 
-        // Function to load data from localStorage on page load
-        function loadData() {
-            const output = document.getElementById('output');
-            const savedData = localStorage.getItem('savedData'); // Retrieve data from localStorage
-            if (savedData) {
-                output.textContent = `Last saved: ${savedData}`; // Display last saved data
-            }
+        function renderTodos() {
+            const todos = JSON.parse(localStorage.getItem('todos')) || [];
+            const todoList = document.getElementById('todo-list');
+            todoList.innerHTML = ''; // Clear the list before rendering
+
+            todos.forEach(todo => {
+                const li = document.createElement('li');
+                li.className = 'todo-item';
+                li.innerHTML = `
+                    ${todo.text}
+                    <button class="remove-btn" onclick="removeTodo(${todo.id})">Remove</button>
+                `;
+                todoList.appendChild(li);
+            });
         }
 
-        document.getElementById('saveButton').addEventListener('click', saveData); // Add click event listener to save button
-        window.onload = loadData; // Load saved data when the page is loaded
+        function removeTodo(id) {
+            // Get todos from localStorage
+            const todos = JSON.parse(localStorage.getItem('todos')) || [];
+            // Filter out the todo with the given id
+            const updatedTodos = todos.filter(todo => todo.id !== id);
+            localStorage.setItem('todos', JSON.stringify(updatedTodos));
+            renderTodos(); // Re-render the updated list
+        }
+
+        function loadTodos() {
+            renderTodos(); // Initial rendering of todos on page load
+        }
     </script>
 </body>
 </html>
