@@ -1,135 +1,163 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-    <title>Todo List App</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <title>Workout Management App</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
             margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
+            padding: 20px;
         }
         h1 {
+            text-align: center;
             color: #333;
-            margin-bottom: 20px;
         }
-        #todo-form {
-            display: flex;
-            margin-bottom: 20px;
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-        #todo-input {
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            width: 200px;
-        }
-        #add-btn {
+        .button {
+            background-color: #28a745;
+            color: white;
+            border: none;
             padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            background-color: #5cb85c;
-            color: white;
+            border-radius: 5px;
             cursor: pointer;
-            margin-left: 10px;
         }
-        #todo-list {
-            list-style: none;
-            padding: 0;
-            width: 100%;
-            max-width: 300px;
+        .button:hover {
+            background-color: #218838;
         }
-        .todo-item {
+        .exercise {
+            margin-bottom: 15px;
+        }
+        .exercise input {
+            margin-right: 5px;
+        }
+        .set {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            background: #fff;
-            padding: 10px;
-            margin: 5px 0;
-            border-radius: 4px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 5px;
         }
-        .remove-btn {
-            background: red;
-            border: none;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 4px;
+        .set input {
+            margin-right: 5px;
+        }
+        .remove-set {
+            color: red;
             cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <h1>Todo List</h1>
-    <div id="todo-form">
-        <input type="text" id="todo-input" placeholder="Add a new task...">
-        <button id="add-btn">Add</button>
+    <div class="container">
+        <h1>Workout Management App</h1>
+        <button class="button" id="createWorkoutBtn">Create New Workout</button>
+        <div id="workoutList"></div>
     </div>
-    <ul id="todo-list"></ul>
 
     <script>
-        // Check if there are todos in localStorage and load them
-        document.addEventListener('DOMContentLoaded', loadTodos);
+        // Initialize workouts array from localStorage or set to empty array
+        let workouts = JSON.parse(localStorage.getItem('workouts')) || [];
 
-        // Add event listener to the 'Add' button
-        document.getElementById('add-btn').addEventListener('click', addTodo);
+        document.getElementById('createWorkoutBtn').addEventListener('click', createWorkout);
 
-        function addTodo() {
-            const input = document.getElementById('todo-input');
-            const todoText = input.value.trim();
+        // Function to create a new workout
+        function createWorkout() {
+            const workoutDiv = document.createElement('div');
+            workoutDiv.classList.add('workout');
 
-            if (todoText === '') return; // Do nothing if input is empty
+            const workoutName = prompt("Enter Workout Name") || "Unnamed Workout";
+            workoutDiv.innerHTML = `<h3>${workoutName}</h3>`;
 
-            // Create a new todo object
-            const todo = {
-                id: Date.now(),
-                text: todoText
-            };
+            const exerciseContainer = document.createElement('div');
+            exerciseContainer.classList.add('exercise-container');
+            workoutDiv.appendChild(exerciseContainer);
 
-            // Get existing todos from localStorage
-            const todos = JSON.parse(localStorage.getItem('todos')) || [];
-            todos.push(todo);
-            localStorage.setItem('todos', JSON.stringify(todos));
+            const addExerciseBtn = document.createElement('button');
+            addExerciseBtn.innerText = "Add Exercise";
+            addExerciseBtn.classList.add('button');
+            addExerciseBtn.addEventListener('click', () => addExercise(exerciseContainer));
+            workoutDiv.appendChild(addExerciseBtn);
 
-            // Add todo to the list and clear input
-            input.value = '';
-            renderTodos();
+            const saveWorkoutBtn = document.createElement('button');
+            saveWorkoutBtn.innerText = "Save Workout";
+            saveWorkoutBtn.classList.add('button');
+            saveWorkoutBtn.addEventListener('click', () => saveWorkout(workoutName, exerciseContainer));
+            workoutDiv.appendChild(saveWorkoutBtn);
+
+            document.getElementById('workoutList').appendChild(workoutDiv);
         }
 
-        function renderTodos() {
-            const todos = JSON.parse(localStorage.getItem('todos')) || [];
-            const todoList = document.getElementById('todo-list');
-            todoList.innerHTML = ''; // Clear the list before rendering
+        // Function to add an exercise input to the workout
+        function addExercise(container) {
+            const exerciseDiv = document.createElement('div');
+            exerciseDiv.classList.add('exercise');
 
-            todos.forEach(todo => {
-                const li = document.createElement('li');
-                li.className = 'todo-item';
-                li.innerHTML = `
-                    ${todo.text}
-                    <button class="remove-btn" onclick="removeTodo(${todo.id})">Remove</button>
-                `;
-                todoList.appendChild(li);
+            const exerciseNameInput = document.createElement('input');
+            exerciseNameInput.placeholder = "Exercise Name";
+
+            const setsContainer = document.createElement('div');
+            const addSetBtn = document.createElement('button');
+            addSetBtn.innerText = "Add Set";
+            addSetBtn.classList.add('button');
+            addSetBtn.addEventListener('click', () => addSet(setsContainer));
+
+            exerciseDiv.appendChild(exerciseNameInput);
+            exerciseDiv.appendChild(setsContainer);
+            exerciseDiv.appendChild(addSetBtn);
+            container.appendChild(exerciseDiv);
+        }
+
+        // Function to add a set input to the exercise
+        function addSet(container) {
+            const setDiv = document.createElement('div');
+            setDiv.classList.add('set');
+
+            const repsInput = document.createElement('input');
+            repsInput.placeholder = "Reps";
+            repsInput.type = "number";
+
+            const weightInput = document.createElement('input');
+            weightInput.placeholder = "Weight (kg)";
+            weightInput.type = "number";
+
+            const removeSetBtn = document.createElement('span');
+            removeSetBtn.innerText = "Remove";
+            removeSetBtn.classList.add('remove-set');
+            removeSetBtn.onclick = () => setDiv.remove();
+
+            setDiv.appendChild(repsInput);
+            setDiv.appendChild(weightInput);
+            setDiv.appendChild(removeSetBtn);
+            container.appendChild(setDiv);
+        }
+
+        // Function to save the workout to localStorage
+        function saveWorkout(name, container) {
+            const exercises = [];
+            const exerciseDivs = container.getElementsByClassName('exercise');
+
+            Array.from(exerciseDivs).forEach(exerciseDiv => {
+                const exerciseName = exerciseDiv.querySelector('input').value;
+                const setsDivs = exerciseDiv.getElementsByClassName('set');
+                const sets = Array.from(setsDivs).map(setDiv => {
+                    return {
+                        reps: setDiv.querySelector('input[type="number"]').value,
+                        weight: setDiv.querySelector('input[type="number"]:nth-of-type(2)').value
+                    };
+                });
+                exercises.push({ name: exerciseName, sets });
             });
-        }
 
-        function removeTodo(id) {
-            // Get todos from localStorage
-            const todos = JSON.parse(localStorage.getItem('todos')) || [];
-            // Filter out the todo with the given id
-            const updatedTodos = todos.filter(todo => todo.id !== id);
-            localStorage.setItem('todos', JSON.stringify(updatedTodos));
-            renderTodos(); // Re-render the updated list
-        }
-
-        function loadTodos() {
-            renderTodos(); // Initial rendering of todos on page load
+            workouts.push({ name, exercises });
+            localStorage.setItem('workouts', JSON.stringify(workouts));
+            alert("Workout saved!");
+            console.log(workouts); // Log workouts for debugging
         }
     </script>
 </body>
